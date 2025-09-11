@@ -1,6 +1,6 @@
 # Application Removal Tool
 
-## Produced by intare_the_mafia  
+## Produced by ÂMÎĞo.Đ.ĈŶƁeŘ  
 **Year:** 2025  
 **Date:** 4th March  
 **Quote:** "NEVER FAIL TO TRY"
@@ -37,7 +37,7 @@ This Bash script provides an interactive way to list and remove applications fro
 - `update-desktop-database` (for refreshing the application menu)
 
 ## Repository
-Find the script on GitHub: [Lionmafia/ALL-free-LINUX-tools](https://github.com/Lionmafia/ALL-free-LINUX-tools-.git)
+Find the script on GitHub: [Lionmafia/ALL-free-LINUX-tools](https://github.com/amigo-d-cyber/ALL-free-LINUX-tools-.git)
 
 ## License
 This script is open-source and can be freely modified and distributed.
