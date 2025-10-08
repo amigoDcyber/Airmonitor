@@ -442,7 +442,7 @@ This tool is designed for:
 
 **Stay bloody, stay sharp! 🩸⚡**
 
-Made with ❤️ by the underground
+Made with ❤️ by the amigo.Cyber
 
 [![GitHub Stars](https://img.shields.io/github/stars/amigo-d-cyber/ALL-free-LINUX-tools-?style=social)](https://github.com/amigo-d-cyber/ALL-free-LINUX-tools-)
 [![GitHub Forks](https://img.shields.io/github/forks/amigo-d-cyber/ALL-free-LINUX-tools-?style=social)](https://github.com/amigo-d-cyber/ALL-free-LINUX-tools-)
