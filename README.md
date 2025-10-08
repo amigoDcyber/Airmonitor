@@ -355,7 +355,7 @@ Contributions are welcome! Here's how you can help:
 
 ### Reporting Issues
 
-Found a bug? [Open an issue](https://github.com/amigo-d-cyber/ALL-free-LINUX-tools-/issues) with:
+Found a bug? [Open an issue](https://github.com/amigoDcyber/Airmonitor//issues) with:
 - Your Linux distribution and version
 - Wireless adapter model
 - Complete error output
@@ -417,8 +417,8 @@ This tool is designed for:
 
 **amigo-d-cyber**
 
-- GitHub: [@amigo-d-cyber](https://github.com/amigo-d-cyber)
-- Repository: [ALL-free-LINUX-tools-](https://github.com/amigo-d-cyber/ALL-free-LINUX-tools-)
+- GitHub: [@amigo-d-cyber](https://github.com/amigoDcyber)
+- Repository: [ALL-free-LINUX-tools-](https://github.com/amigoDcyber/Airmonitor)
 
 ---
 
@@ -432,8 +432,8 @@ This tool is designed for:
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/amigo-d-cyber/ALL-free-LINUX-tools-/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/amigo-d-cyber/ALL-free-LINUX-tools-/discussions)
+- **Issues**: [GitHub Issues](https://github.com/amigoDcyber/Airmonitor//issues)
+- **Discussions**: [GitHub Discussions](https://github.com/amigoDcyber/Airmonitor/discussions)
 - **Documentation**: `man airmonitor` (after installation)
 
 ---
@@ -444,7 +444,7 @@ This tool is designed for:
 
 Made with ❤️ by the amigo.Cyber
 
-[![GitHub Stars](https://img.shields.io/github/stars/amigo-d-cyber/ALL-free-LINUX-tools-?style=social)](https://github.com/amigo-d-cyber/ALL-free-LINUX-tools-)
-[![GitHub Forks](https://img.shields.io/github/forks/amigo-d-cyber/ALL-free-LINUX-tools-?style=social)](https://github.com/amigo-d-cyber/ALL-free-LINUX-tools-)
+[![GitHub Stars](https://img.shields.io/github/stars/amigoDcyber/Airmonitor?style=social)](https://github.com/amigoDcyber/Airmonitor)
+[![GitHub Forks](https://img.shields.io/github/forks/amigoDcyber/Airmonitor?style=social)](https://github.com/amigoDcyber/Airmonitor)
 
 </div>
