@@ -88,8 +88,9 @@ detect_distro() {
     fi
     
     # Determine package manager
+    # FIX #1: Added "garuda" to arch-based distros detection
     case "$DISTRO_ID" in
-        arch|manjaro|endeavouros|artix)
+        arch|manjaro|endeavouros|artix|garuda|cachyos|blackarch)
             PKG_MANAGER="pacman"
             PKG_INSTALL="pacman -S --noconfirm"
             PKG_UPDATE="pacman -Sy"
@@ -278,6 +279,17 @@ install_airmonitor() {
     print_info "Copying airmonitor script..."
     cp "$MAIN_SCRIPT" "$INSTALL_DIR/$SCRIPT_NAME"
     chmod +x "$INSTALL_DIR/$SCRIPT_NAME"
+
+    # FIX #2: Convert CRLF to LF (Windows line endings fix)
+    print_info "Checking for Windows line endings (CRLF)..."
+    if command -v dos2unix >/dev/null 2>&1; then
+        dos2unix "$INSTALL_DIR/$SCRIPT_NAME" 2>/dev/null
+        print_status "Line endings normalized with dos2unix"
+    else
+        # Fallback using sed if dos2unix not available
+        sed -i 's/\r//' "$INSTALL_DIR/$SCRIPT_NAME"
+        print_status "Line endings normalized with sed"
+    fi
     
     # Create man page
     create_man_page
@@ -289,7 +301,8 @@ install_airmonitor() {
 create_man_page() {
     print_info "Creating man page documentation..."
     
-    cat > "$MAN_DIR/airmonitor.1" << 'EOF'
+    # FIX #3: Removed quotes from EOF heredoc so $(date) expands correctly
+    cat > "$MAN_DIR/airmonitor.1" << EOF
 .TH AIRMONITOR 1 "$(date +"%B %Y")" "AMIGO CYBER v2.0" "User Commands"
 .SH NAME
 airmonitor \- Wireless interface monitor mode switcher
