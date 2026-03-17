@@ -21,41 +21,46 @@ NC='\033[0m'             # No Color
 # Config file for preferences
 CONFIG_FILE="$HOME/.amigo_monitor_config"
 
+# FIX #1: Initialize RESTART_NM to false at the top level
+# so restore_network_manager() works correctly even if
+# kill_interfering_processes() was never called
+RESTART_NM=false
+
 # Bloody style ASCII banner
 show_banner() {
     echo -e "${BRED}"
     cat << "EOF"
-    ╔═══════════════════════════════════════════════════════════╗
-    ║                                                           ║
-    ║      ▄▄▄       ███▄ ▄███▓ ██▓  ▄████  ▒█████            ║
-    ║     ▒████▄    ▓██▒▀█▀ ██▒▓██▒ ██▒ ▀█▒▒██▒  ██▒          ║
-    ║     ▒██  ▀█▄  ▓██    ▓██░▒██▒▒██░▄▄▄░▒██░  ██▒          ║
-    ║     ░██▄▄▄▄██ ▒██    ▒██ ░██░░▓█  ██▓▒██   ██░          ║
-    ║      ▓█   ▓██▒▒██▒   ░██▒░██░░▒▓███▀▒░ ████▓▒░          ║
-    ║      ▒▒   ▓▒█░░ ▒░   ░  ░░▓   ░▒   ▒ ░ ▒░▒░▒░           ║
-    ║       ▒   ▒▒ ░░  ░      ░ ▒ ░  ░   ░   ░ ▒ ▒░           ║
-    ║       ░   ▒   ░      ░    ▒ ░░ ░   ░ ░ ░ ░ ▒            ║
-    ║           ░  ░       ░    ░        ░     ░ ░            ║
-    ║                                                          ║
-    ║       ▄████▄▓██   ██▓ ▄▄▄▄   ▓█████  ██▀███            ║
-    ║      ▒██▀ ▀█ ▒██  ██▒▓█████▄ ▓█   ▀ ▓██ ▒ ██▒          ║
-    ║      ▒▓█    ▄ ▒██ ██░▒██▒ ▄██▒███   ▓██ ░▄█ ▒          ║
-    ║      ▒▓▓▄ ▄██▒░ ▐██▓░▒██░█▀  ▒▓█  ▄ ▒██▀▀█▄            ║
-    ║      ▒ ▓███▀ ░░ ██▒▓░░▓█  ▀█▓░▒████▒░██▓ ▒██▒          ║
-    ║      ░ ░▒ ▒  ░ ██▒▒▒ ░▒▓███▀▒░░ ▒░ ░░ ▒▓ ░▒▓░          ║
-    ║        ░  ▒ ▓██ ░▒░ ▒░▒   ░  ░ ░  ░  ░▒ ░ ▒░          ║
-    ║      ░     ▒ ▒ ░░  ░  ░    ░    ░     ░░   ░           ║
-    ║      ░ ░   ░ ░     ░  ░         ░  ░   ░               ║
-    ║      ░     ░ ░            ░                            ║
-    ║                                                          ║
-    ╚═══════════════════════════════════════════════════════════╝
+    +-----------------------------------------------------------+
+    |                                                           |
+    |      ___       AMI_ _GO   AMI  _GO    CYBER             |
+    |     AMIGO_    AMIGO/G/ AMIGOGO AMI /AMIGOGO  AMI         |
+    |     AMI  /G_  AMI    AMIGOGOGO___AMIGO  AMI              |
+    |     AMI____GO AMI    AMI AMIGOGO  AMIGO   AMI            |
+    |      AM   AMIGOGO   AMIGOGOGOGO__/AM AMIGOGO             |
+    |      AM   AMIGO AM   A  AMI   AM   A A AMIGO             |
+    |       A   AM AM  A      A A A  A   A A AM                |
+    |       A   A   A      A    A AM A   A A A A               |
+    |           A  A       A    A        A     A A             |
+    |                                                          |
+    |       _CYBER_AMI   AMI ____   AMIGO  AM/AMI             |
+    |      AMI/ /A AMI  AMIGOGO_ AM   / AMI A AMI             |
+    |      AMI    _ AMI AMIGOGO _AMIGO   AMI A_A              |
+    |      AMI_ _AMI AMIGOGO__  AMI  _ AMI//A_                |
+    |      A AMIG/ AM AMIGOGO  /AMIGOGOGO AMI                 |
+    |      A AM A  A AMIGO AMIGO/AMI AM AM AM                  |
+    |        A  A AMI AMI AMI   A  A A  A  AM A AM            |
+    |      A     A A AM  A  A    A    A     AM   A             |
+    |      A A   A A     A  A         A  A   A                 |
+    |      A     A A            A                              |
+    |                                                          |
+    +-----------------------------------------------------------+
 EOF
     echo -e "${NC}"
     echo -e "${WHITE}           Wireless Monitor Mode Switcher v2.0${NC}"
     echo -e "${GRAY}               Developer: ${BGREEN}amigoDcyber${NC}"
     echo -e "${GRAY}               GitHub: ${BCYAN}https://github.com/amigoDcyber${NC}"
     echo -e "${GRAY}               Tools: ${BCYAN}https://github.com/amigoDcyber/Airmonitor${NC}"
-    echo -e "${BRED}           ═══════════════════════════════════════${NC}"
+    echo -e "${BRED}           ---------------------------------------${NC}"
     echo
 }
 
@@ -73,13 +78,14 @@ load_preferences() {
     fi
 }
 
-# Save preferences
+# FIX #2: Save preferences - added quotes around $(date +%s)
+# so LAST_USED is properly saved as a value in the config file
 save_preferences() {
     cat > "$CONFIG_FILE" << EOF
 # AMIGO CYBER Monitor Config
 PREFERRED_INTERFACE="$1"
 LAST_MODE="$2"
-LAST_USED=$(date +%s)
+LAST_USED="$(date +%s)"
 EOF
 }
 
@@ -94,8 +100,9 @@ interface_recovery_mode() {
     # Try to set to managed mode first
     iw "$INTERFACE" set type managed 2>/dev/null
     
-    # Try to reload the module if possible
-    local driver=$(ethtool -i "$INTERFACE" 2>/dev/null | grep 'driver:' | awk '{print $2}')
+    # FIX #3: Use local with separate assignment to avoid masking return value
+    local driver
+    driver=$(ethtool -i "$INTERFACE" 2>/dev/null | grep 'driver:' | awk '{print $2}')
     if [[ -n "$driver" ]]; then
         print_info "Reloading driver module: ${BYELLOW}$driver${NC}"
         modprobe -r "$driver" 2>/dev/null
@@ -131,15 +138,17 @@ load_preferences
 
 # Auto-detect wireless interface
 get_wireless_interface() {
-    local interfaces=($(iw dev | awk '$1=="Interface"{print $2}'))
-    
+    # FIX #4: Use mapfile instead of unquoted command substitution in array
+    # to safely handle interface names and avoid word splitting
+    local interfaces=()
+    mapfile -t interfaces < <(iw dev | awk '$1=="Interface"{print $2}')
+
     if [[ ${#interfaces[@]} -eq 0 ]]; then
         print_error "No wireless interface found!"
         echo -e "${GRAY}   Make sure your wireless adapter is connected${NC}" >&2
         return 1
     elif [[ ${#interfaces[@]} -eq 1 ]]; then
         local interface="${interfaces[0]}"
-        # Always ask even for single interface
         print_info "Found wireless interface: ${BGREEN}$interface${NC}" >&2
         if [[ -n "$PREFERRED_INTERFACE" && "$PREFERRED_INTERFACE" == "$interface" ]]; then
             print_question "Use your preferred interface ${BGREEN}$interface${NC}?" >&2
@@ -148,11 +157,11 @@ get_wireless_interface() {
         fi
         read -p "$(echo -e "${BPURPLE}   Choice${NC} ${WHITE}[${BGREEN}Y${WHITE}/${RED}n${WHITE}]${NC}: ")" choice >&2
         case "$choice" in
-            n|N ) 
+            n|N )
                 print_error "Interface selection cancelled" >&2
                 return 1
                 ;;
-            * ) 
+            * )
                 echo "$interface"
                 return 0
                 ;;
@@ -160,7 +169,6 @@ get_wireless_interface() {
     else
         print_info "Multiple wireless interfaces detected:" >&2
         echo >&2
-        # Highlight preferred interface if it exists
         for i in "${!interfaces[@]}"; do
             if [[ -n "$PREFERRED_INTERFACE" && "${interfaces[i]}" == "$PREFERRED_INTERFACE" ]]; then
                 echo -e "${WHITE}    $((i+1)).${NC} ${BGREEN}${interfaces[i]}${NC} ${BYELLOW}(preferred)${NC}" >&2
@@ -171,7 +179,7 @@ get_wireless_interface() {
         echo >&2
         print_question "Select interface number:" >&2
         read -p "$(echo -e "${BPURPLE}   Choice${NC} ${WHITE}[${BPURPLE}1-${#interfaces[@]}${WHITE}]${NC}: ")" choice >&2
-        if [[ "$choice" =~ ^[1-${#interfaces[@]}]$ ]]; then
+        if [[ "$choice" =~ ^[1-9][0-9]*$ ]] && (( choice >= 1 && choice <= ${#interfaces[@]} )); then
             echo "${interfaces[$((choice-1))]}"
             return 0
         else
@@ -184,26 +192,27 @@ get_wireless_interface() {
 # Check if interface is connected to a network
 check_network_connection() {
     local interface="$1"
-    
-    # Check using multiple methods
+
     # Method 1: iwconfig ESSID check
-    local essid=$(iwconfig "$interface" 2>/dev/null | grep 'ESSID:' | cut -d'"' -f2)
+    # FIX #5: Use local with separate assignment to avoid masking return value
+    local essid
+    essid=$(iwconfig "$interface" 2>/dev/null | grep 'ESSID:' | cut -d'"' -f2)
     if [[ -n "$essid" && "$essid" != "off/any" ]]; then
         return 0  # Connected
     fi
-    
+
     # Method 2: Check if we have an IP address
     if ip addr show "$interface" 2>/dev/null | grep -q 'inet '; then
         return 0  # Connected
     fi
-    
+
     # Method 3: nmcli check
     if command -v nmcli >/dev/null 2>&1; then
         if nmcli -t -f DEVICE,STATE dev 2>/dev/null | grep "^$interface:connected" >/dev/null; then
             return 0  # Connected
         fi
     fi
-    
+
     return 1  # Not connected
 }
 
@@ -211,21 +220,20 @@ check_network_connection() {
 get_current_ssid() {
     local interface="$1"
     local ssid=""
-    
-    # Try multiple methods to get SSID
+
     # Method 1: iwconfig
     ssid=$(iwconfig "$interface" 2>/dev/null | grep 'ESSID:' | sed 's/.*ESSID:"\([^"]*\)".*/\1/')
-    
+
     # Method 2: nmcli if iwconfig failed
     if [[ -z "$ssid" || "$ssid" == "off/any" ]]; then
         ssid=$(nmcli -t -f active,ssid dev wifi 2>/dev/null | grep '^yes:' | cut -d: -f2)
     fi
-    
+
     # Method 3: iw if others failed
     if [[ -z "$ssid" ]]; then
         ssid=$(iw dev "$interface" link 2>/dev/null | grep 'SSID:' | awk '{print $2}')
     fi
-    
+
     # Return the SSID or "Unknown" if not found
     if [[ -n "$ssid" && "$ssid" != "off/any" ]]; then
         echo "$ssid"
@@ -237,26 +245,26 @@ get_current_ssid() {
 # Kill interfering processes
 kill_interfering_processes() {
     print_info "Scanning for interfering processes..."
-    
+
     # Kill NetworkManager for this interface
     if pgrep NetworkManager >/dev/null; then
         print_warning "Stopping NetworkManager..."
         systemctl stop NetworkManager 2>/dev/null || service NetworkManager stop 2>/dev/null
         RESTART_NM=true
     fi
-    
+
     # Kill wpa_supplicant
     if pgrep -f "wpa_supplicant.*$INTERFACE" >/dev/null; then
         print_warning "Terminating wpa_supplicant..."
         pkill -f "wpa_supplicant.*$INTERFACE" 2>/dev/null
     fi
-    
+
     # Kill dhclient
     if pgrep -f "dhclient.*$INTERFACE" >/dev/null; then
         print_warning "Terminating dhclient..."
         pkill -f "dhclient.*$INTERFACE" 2>/dev/null
     fi
-    
+
     echo -e "${GRAY}   Waiting for processes to terminate...${NC}"
     sleep 2
 }
@@ -267,29 +275,30 @@ restore_network_manager() {
         print_info "Restarting NetworkManager..."
         systemctl start NetworkManager 2>/dev/null || service NetworkManager start 2>/dev/null
         echo -e "${GRAY}   Network services restored${NC}"
+        RESTART_NM=false
     fi
 }
 
 # Set interface to monitor mode
 set_monitor_mode() {
     print_info "Switching ${BGREEN}$INTERFACE${CYAN} to monitor mode..."
-    
+
     if ! ip link set "$INTERFACE" down 2>/dev/null; then
         print_error "Failed to bring interface down"
         return 1
     fi
-    
+
     if ! iw "$INTERFACE" set type monitor 2>/dev/null; then
         print_error "Failed to set monitor mode (driver may not support it)"
         ip link set "$INTERFACE" up 2>/dev/null
         return 1
     fi
-    
+
     if ! ip link set "$INTERFACE" up 2>/dev/null; then
         print_error "Failed to bring interface up"
         return 1
     fi
-    
+
     print_status "${BGREEN}$INTERFACE${WHITE} is now in ${BRED}MONITOR${WHITE} mode"
     echo -e "${GRAY}   Ready for packet capture and analysis${NC}"
     save_preferences "$INTERFACE" "monitor"
@@ -299,22 +308,25 @@ set_monitor_mode() {
 # Set interface to managed mode
 set_managed_mode() {
     print_info "Switching ${BGREEN}$INTERFACE${CYAN} to managed mode..."
-    
+
     if ! ip link set "$INTERFACE" down 2>/dev/null; then
         print_error "Failed to bring interface down"
         return 1
     fi
-    
+
     if ! iw "$INTERFACE" set type managed 2>/dev/null; then
         print_error "Failed to set managed mode"
+        # FIX #6: Bring interface back up even if mode switch fails
+        # so it's not left in a down state
+        ip link set "$INTERFACE" up 2>/dev/null
         return 1
     fi
-    
+
     if ! ip link set "$INTERFACE" up 2>/dev/null; then
         print_error "Failed to bring interface up"
         return 1
     fi
-    
+
     print_status "${BGREEN}$INTERFACE${WHITE} is now in ${BGREEN}MANAGED${WHITE} mode"
     echo -e "${GRAY}   Normal wireless connectivity restored${NC}"
     restore_network_manager
@@ -325,20 +337,21 @@ set_managed_mode() {
 # Quick mode toggle menu
 quick_mode_toggle() {
     while true; do
-        echo -e "${BCYAN}╔══════════════════════════════════════════════╗${NC}"
-        echo -e "${BCYAN}║${NC} ${WHITE}Quick Mode Toggle${NC}                         ${BCYAN}║${NC}"
-        echo -e "${BCYAN}╚══════════════════════════════════════════════╝${NC}"
-        
-        # Get current mode
-        local current_mode=$(iw dev "$INTERFACE" info 2>/dev/null | grep -i type | awk '{print $2}')
+        echo -e "${BCYAN}+----------------------------------------------+${NC}"
+        echo -e "${BCYAN}|${NC} ${WHITE}Quick Mode Toggle${NC}                         ${BCYAN}|${NC}"
+        echo -e "${BCYAN}+----------------------------------------------+${NC}"
+
+        # FIX #7: Use local with separate assignment to avoid masking return value
+        local current_mode
+        current_mode=$(iw dev "$INTERFACE" info 2>/dev/null | grep -i type | awk '{print $2}')
         print_info "Current mode: ${BYELLOW}${current_mode^^}${NC}"
         echo
-        
-        echo -e "${WHITE}   Press ${BRED}[m]${WHITE} → Switch to Monitor Mode${NC}"
-        echo -e "${WHITE}   Press ${BGREEN}[n]${WHITE} → Switch to Managed Mode${NC}"
-        echo -e "${WHITE}   Press ${BYELLOW}[q]${WHITE} → Quit${NC}"
+
+        echo -e "${WHITE}   Press ${BRED}[m]${WHITE} - Switch to Monitor Mode${NC}"
+        echo -e "${WHITE}   Press ${BGREEN}[n]${WHITE} - Switch to Managed Mode${NC}"
+        echo -e "${WHITE}   Press ${BYELLOW}[q]${WHITE} - Quit${NC}"
         echo
-        
+
         read -n 1 -s -p "$(echo -e "${BPURPLE}   Your choice: ${NC}")" key
         echo
         case "$key" in
@@ -348,9 +361,10 @@ quick_mode_toggle() {
                     sleep 1
                     continue
                 fi
-                
+
                 if check_network_connection "$INTERFACE"; then
-                    local ssid=$(get_current_ssid "$INTERFACE")
+                    local ssid
+                    ssid=$(get_current_ssid "$INTERFACE")
                     print_warning "You are connected to Wi-Fi SSID '${BGREEN}$ssid${BYELLOW}'"
                     print_warning "Switching to monitor mode will disconnect you"
                     read -p "$(echo -e "${BPURPLE}   Continue?${NC} ${WHITE}[${RED}y${WHITE}/${BGREEN}N${WHITE}]${NC}: ")" confirm
@@ -381,7 +395,7 @@ quick_mode_toggle() {
                     sleep 1
                     continue
                 fi
-                
+
                 if set_managed_mode; then
                     print_status "Quick toggle: Managed mode activated"
                     echo
@@ -402,9 +416,9 @@ quick_mode_toggle() {
 # Cleanup function
 cleanup() {
     echo
-    echo -e "${BRED}╔══════════════════════════════════════════════╗${NC}"
-    echo -e "${BRED}║${NC} ${WHITE}Cleaning up and restoring interface...${NC}     ${BRED}║${NC}"
-    echo -e "${BRED}╚══════════════════════════════════════════════╝${NC}"
+    echo -e "${BRED}+----------------------------------------------+${NC}"
+    echo -e "${BRED}|${NC} ${WHITE}Cleaning up and restoring interface...${NC}     ${BRED}|${NC}"
+    echo -e "${BRED}+----------------------------------------------+${NC}"
     set_managed_mode
     echo -e "${BGREEN}   Thanks for using AMIGO CYBER! Stay safe out there.${NC}"
     exit 0
@@ -416,8 +430,10 @@ trap cleanup SIGINT SIGTERM
 # Get wireless interface
 INTERFACE=$(get_wireless_interface)
 
-# Check if interface selection was successful
-if [[ $? -ne 0 || -z "$INTERFACE" ]]; then
+# FIX #8: Save exit code immediately after get_wireless_interface
+# because the assignment itself resets $?
+IFACE_STATUS=$?
+if [[ $IFACE_STATUS -ne 0 || -z "$INTERFACE" ]]; then
     print_error "No interface selected!"
     exit 1
 fi
@@ -432,6 +448,7 @@ if ! ip link show "$INTERFACE" &>/dev/null; then
 fi
 
 # Check current mode
+# FIX #9: Use separate assignment to avoid masking return value
 CURRENT_MODE=$(iw dev "$INTERFACE" info 2>/dev/null | grep -i type | awk '{print $2}')
 
 if [[ -z "$CURRENT_MODE" ]]; then
@@ -443,9 +460,9 @@ print_info "Current mode: ${BYELLOW}${CURRENT_MODE^^}${NC}"
 echo
 
 # Main menu
-echo -e "${BCYAN}╔══════════════════════════════════════════════╗${NC}"
-echo -e "${BCYAN}║${NC} ${WHITE}Choose Operation Mode${NC}                      ${BCYAN}║${NC}"
-echo -e "${BCYAN}╚══════════════════════════════════════════════╝${NC}"
+echo -e "${BCYAN}+----------------------------------------------+${NC}"
+echo -e "${BCYAN}|${NC} ${WHITE}Choose Operation Mode${NC}                      ${BCYAN}|${NC}"
+echo -e "${BCYAN}+----------------------------------------------+${NC}"
 echo -e "${WHITE}   [${BRED}1${WHITE}] Standard Mode (guided setup)${NC}"
 echo -e "${WHITE}   [${BGREEN}2${WHITE}] Quick Toggle Mode (m/n keys)${NC}"
 echo -e "${WHITE}   [${BYELLOW}3${WHITE}] Recovery Mode (fix interface issues)${NC}"
@@ -457,11 +474,10 @@ read -p "$(echo -e "${BPURPLE}   Choice${NC} ${WHITE}[${BPURPLE}1-4${WHITE}]${NC
 case "$mode_choice" in
     2)
         quick_mode_toggle
-        # This never returns, it loops forever or exits
         ;;
     3)
         interface_recovery_mode
-        # After recovery, show menu again
+        # After recovery, re-exec script cleanly
         exec "$0"
         ;;
     4)
@@ -478,7 +494,7 @@ if [[ "$CURRENT_MODE" == "monitor" ]]; then
     print_question "Interface is already in monitor mode. Switch back to managed mode?"
     read -p "$(echo -e "${BPURPLE}   Choice${NC} ${WHITE}[${BGREEN}y${WHITE}/${RED}N${WHITE}]${NC}: ")" choice
     case "$choice" in
-        y|Y ) 
+        y|Y )
             echo
             if set_managed_mode; then
                 print_status "Successfully switched to managed mode"
@@ -488,7 +504,7 @@ if [[ "$CURRENT_MODE" == "monitor" ]]; then
                 exit 1
             fi
             ;;
-        * ) 
+        * )
             print_info "Keeping ${BGREEN}$INTERFACE${CYAN} in monitor mode${NC}"
             print_warning "Press ${BRED}Ctrl+C${BYELLOW} to exit and restore interface${NC}"
             echo
@@ -497,8 +513,9 @@ if [[ "$CURRENT_MODE" == "monitor" ]]; then
 else
     # Check if connected to network before switching
     if check_network_connection "$INTERFACE"; then
-        ssid=$(get_current_ssid "$INTERFACE")
-        print_warning "You are connected to Wi-Fi SSID '${BGREEN}$ssid${BYELLOW}'"
+        # FIX #10: Use local with separate assignment for ssid here too
+        local_ssid=$(get_current_ssid "$INTERFACE")
+        print_warning "You are connected to Wi-Fi SSID '${BGREEN}$local_ssid${BYELLOW}'"
         print_warning "Switching to monitor mode will disconnect you"
         read -p "$(echo -e "${BPURPLE}   Continue?${NC} ${WHITE}[${RED}y${WHITE}/${BGREEN}N${WHITE}]${NC}: ")" choice
         case "$choice" in
@@ -511,10 +528,10 @@ else
                 ;;
         esac
     fi
-    
+
     # Kill interfering processes before switching to monitor mode
     kill_interfering_processes
-    
+
     if set_monitor_mode; then
         print_status "Successfully switched to monitor mode"
     else
@@ -526,9 +543,9 @@ fi
 
 # Keep script running if in monitor mode
 if [[ "$CURRENT_MODE" == "monitor" ]] || iw dev "$INTERFACE" info 2>/dev/null | grep -q "type monitor"; then
-    echo -e "${BCYAN}╔══════════════════════════════════════════════╗${NC}"
-    echo -e "${BCYAN}║${NC} ${WHITE}Monitor mode active - Press ${BRED}Ctrl+C${WHITE} to exit${NC}    ${BCYAN}║${NC}"
-    echo -e "${BCYAN}╚══════════════════════════════════════════════╝${NC}"
+    echo -e "${BCYAN}+----------------------------------------------+${NC}"
+    echo -e "${BCYAN}|${NC} ${WHITE}Monitor mode active - Press ${BRED}Ctrl+C${WHITE} to exit${NC}    ${BCYAN}|${NC}"
+    echo -e "${BCYAN}+----------------------------------------------+${NC}"
     echo -e "${GRAY}   Interface ready for wireless analysis${NC}"
     echo
     while true; do
