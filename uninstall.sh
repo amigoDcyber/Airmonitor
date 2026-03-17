@@ -89,11 +89,13 @@ check_installation() {
 check_running_processes() {
     print_info "Checking for running airmonitor processes..."
     
-    local airmonitor_pids=$(pgrep -f "airmonitor" 2>/dev/null)
+    # FIX #1: Use mapfile to safely handle PIDs instead of unquoted variable
+    local airmonitor_pids
+    mapfile -t airmonitor_pids < <(pgrep -f "airmonitor" 2>/dev/null)
     
-    if [[ -n "$airmonitor_pids" ]]; then
+    if [[ ${#airmonitor_pids[@]} -gt 0 ]]; then
         print_warning "Found running airmonitor processes!"
-        echo -e "${GRAY}   PIDs: $airmonitor_pids${NC}"
+        echo -e "${GRAY}   PIDs: ${airmonitor_pids[*]}${NC}"
         
         print_question "Kill running processes before uninstall?"
         read -p "$(echo -e "${BPURPLE}   Continue?${NC} ${WHITE}[${BGREEN}Y${WHITE}/${RED}n${WHITE}]${NC}: ")" kill_processes
@@ -142,38 +144,35 @@ remove_files() {
     fi
     
     # Remove backup files
-    local backup_files=$(find "$INSTALL_DIR" -name "${SCRIPT_NAME}.backup.*" 2>/dev/null)
-    if [[ -n "$backup_files" ]]; then
-        print_info "Removing backup files..."
-        for backup in $backup_files; do
-            if rm -f "$backup" 2>/dev/null; then
-                print_status "Removed backup: ${BGREEN}$(basename "$backup")${NC}"
-                ((removed_files++))
-            else
-                print_error "Failed to remove backup: $backup"
-                ((failed_removals++))
-            fi
-        done
+    # FIX #2: Use find with -print0 and while loop to safely handle filenames with spaces
+    local backup_count=0
+    while IFS= read -r -d '' backup; do
+        ((backup_count++))
+        if rm -f "$backup" 2>/dev/null; then
+            print_status "Removed backup: ${BGREEN}$(basename "$backup")${NC}"
+            ((removed_files++))
+        else
+            print_error "Failed to remove backup: $backup"
+            ((failed_removals++))
+        fi
+    done < <(find "$INSTALL_DIR" -name "${SCRIPT_NAME}.backup.*" -print0 2>/dev/null)
+
+    if [[ $backup_count -gt 0 ]]; then
+        print_info "Processed $backup_count backup file(s)"
     fi
     
-    # Remove man page
-    if [[ -f "$MAN_DIR/airmonitor.1.gz" ]]; then
-        if rm -f "$MAN_DIR/airmonitor.1.gz" 2>/dev/null; then
-            print_status "Removed: ${BGREEN}$MAN_DIR/airmonitor.1.gz${NC}"
-            ((removed_files++))
-        else
-            print_error "Failed to remove man page"
-            ((failed_removals++))
+    # Remove man page (handle both compressed and uncompressed)
+    for manpage in "$MAN_DIR/airmonitor.1.gz" "$MAN_DIR/airmonitor.1"; do
+        if [[ -f "$manpage" ]]; then
+            if rm -f "$manpage" 2>/dev/null; then
+                print_status "Removed: ${BGREEN}$manpage${NC}"
+                ((removed_files++))
+            else
+                print_error "Failed to remove man page: $manpage"
+                ((failed_removals++))
+            fi
         fi
-    elif [[ -f "$MAN_DIR/airmonitor.1" ]]; then
-        if rm -f "$MAN_DIR/airmonitor.1" 2>/dev/null; then
-            print_status "Removed: ${BGREEN}$MAN_DIR/airmonitor.1${NC}"
-            ((removed_files++))
-        else
-            print_error "Failed to remove man page"
-            ((failed_removals++))
-        fi
-    fi
+    done
     
     # Update man database
     if command -v mandb >/dev/null 2>&1; then
@@ -202,21 +201,23 @@ handle_user_config() {
             local config_files_found=0
             local config_files_removed=0
             
-            # Check common user directories
-            for home_dir in /home/* /root; do
-                if [[ -d "$home_dir" ]]; then
+            # FIX #3: Use getent passwd to properly iterate ALL users on system
+            # instead of just checking /home/* which misses system users and /root
+            while IFS=: read -r username _ uid _ _ home_dir _; do
+                # Only check real users (UID >= 1000) and root (UID 0)
+                if [[ "$uid" -ge 1000 || "$uid" -eq 0 ]] && [[ -d "$home_dir" ]]; then
                     local config_file="$home_dir/.amigo_monitor_config"
                     if [[ -f "$config_file" ]]; then
                         ((config_files_found++))
                         if rm -f "$config_file" 2>/dev/null; then
-                            print_status "Removed config: ${BGREEN}$config_file${NC}"
+                            print_status "Removed config: ${BGREEN}$config_file${NC} (user: $username)"
                             ((config_files_removed++))
                         else
                             print_error "Failed to remove: $config_file"
                         fi
                     fi
                 fi
-            done
+            done < <(getent passwd)
             
             if [[ $config_files_found -eq 0 ]]; then
                 print_info "No user configuration files found"
@@ -244,6 +245,8 @@ verify_removal() {
     fi
     
     # Check if command is still available
+    # FIX #4: Use hash -r to clear shell command cache before checking PATH
+    hash -r 2>/dev/null
     if command -v "$SCRIPT_NAME" >/dev/null 2>&1; then
         print_error "Command still available in PATH: $SCRIPT_NAME"
         verification_failed=true
@@ -255,6 +258,14 @@ verify_removal() {
         verification_failed=true
     fi
     
+    # FIX #5: Also check for leftover backup files
+    local leftover_backups
+    leftover_backups=$(find "$INSTALL_DIR" -name "${SCRIPT_NAME}.backup.*" 2>/dev/null | wc -l)
+    if [[ "$leftover_backups" -gt 0 ]]; then
+        print_warning "Found $leftover_backups leftover backup file(s) in $INSTALL_DIR"
+        verification_failed=true
+    fi
+
     if [[ "$verification_failed" == false ]]; then
         print_status "Verification successful - airmonitor completely removed!"
     else
