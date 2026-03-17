@@ -54,7 +54,7 @@
 - **🛡️ Interface Recovery** - Nuclear cleanup for corrupted adapters (fixes Fluxion/WEF/Linset aftermath)
 - **🎨 Professional UI** - Bloody-style ASCII art with color-coded status indicators
 - **💾 Persistent Configuration** - Remembers your preferences between sessions
-- **📦 Universal Compatibility** - Works across all major Linux distributions
+- **📦 Universal Compatibility** - Works across all major Linux distributions including Garuda Linux
 
 ---
 
@@ -93,6 +93,7 @@ Fixes interfaces corrupted by penetration testing tools:
 - **Error Handling**: Robust failure recovery with detailed error messages
 - **Verbose Logging**: Debug mode for troubleshooting
 - **Man Page**: Complete documentation (`man airmonitor`)
+- **CRLF Auto-Fix**: Installer automatically handles Windows line endings
 
 ---
 
@@ -112,10 +113,11 @@ sudo ./install.sh
 ```
 
 The installer will:
-- ✅ Auto-detect your Linux distribution
+- ✅ Auto-detect your Linux distribution (including Garuda Linux)
 - ✅ Install required dependencies (iw, wireless-tools, iproute2)
 - ✅ Copy airmonitor to `/usr/local/bin/`
-- ✅ Create man page documentation
+- ✅ Auto-fix Windows line endings (CRLF → LF) using `dos2unix`
+- ✅ Create man page documentation with correct date
 - ✅ Verify installation
 
 ### Manual Installation
@@ -123,6 +125,9 @@ The installer will:
 ```bash
 # Make executable
 chmod +x airmonitor.sh
+
+# Fix line endings if edited on Windows (required!)
+dos2unix airmonitor.sh
 
 # Run directly
 sudo ./airmonitor.sh
@@ -133,6 +138,8 @@ sudo ./airmonitor.sh
 | Distribution | Package Manager | Status |
 |-------------|----------------|--------|
 | Arch Linux / Manjaro | pacman | ✅ Fully Supported |
+| **Garuda Linux** | pacman | ✅ Fully Supported |
+| CachyOS / BlackArch | pacman | ✅ Fully Supported |
 | Debian / Ubuntu | apt | ✅ Fully Supported |
 | Kali Linux | apt | ✅ Fully Supported |
 | Parrot OS | apt | ✅ Fully Supported |
@@ -181,9 +188,9 @@ $ sudo airmonitor
 Once launched, airmonitor presents an interactive menu:
 
 ```
-╔══════════════════════════════════════════════╗
-║ Choose Operation Mode                      ║
-╚══════════════════════════════════════════════╝
++----------------------------------------------+
+| Choose Operation Mode                        |
++----------------------------------------------+
    [1] Standard Mode (guided setup)
    [2] Quick Toggle Mode (m/n keys)
    [3] Recovery Mode (fix interface issues)
@@ -197,7 +204,7 @@ Once launched, airmonitor presents an interactive menu:
 ### System Requirements
 
 - **OS**: Linux-based distribution (kernel 3.10+)
-- **Shell**: Bash 4.0 or higher
+- **Shell**: Bash 4.2 or higher
 - **Privileges**: Root access (sudo)
 - **Hardware**: Wireless adapter with monitor mode support
 
@@ -212,6 +219,18 @@ Automatically installed by `install.sh`:
 | `iproute2` | Network interface management | ✅ Yes |
 | `systemd` | Service management | ✅ Yes |
 | `NetworkManager` | Network connection handling | ⚠️ Optional |
+
+### Additional Tools Required
+
+These tools must be installed manually before running the installer:
+
+| Tool | Purpose | Install Command |
+|------|---------|----------------|
+| `dos2unix` | Fix Windows CRLF line endings in scripts | `sudo pacman -S dos2unix` (Arch/Garuda) / `sudo apt install dos2unix` (Debian/Ubuntu) |
+| `ethtool` | Driver detection for Recovery Mode | `sudo pacman -S ethtool` / `sudo apt install ethtool` |
+| `gzip` | Man page compression | Usually pre-installed |
+
+> ⚠️ **Important for Windows users / dual-boot users**: If you edit any `.sh` files on Windows (Notepad, VSCode on Windows, etc.), they may get Windows line endings (CRLF) which will break execution on Linux. The installer handles this automatically using `dos2unix`. If running manually, always run `dos2unix airmonitor.sh` first.
 
 ### Hardware Compatibility
 
@@ -249,6 +268,18 @@ man airmonitor
 
 ### Troubleshooting
 
+#### Script Won't Execute - "No such file or directory"
+```bash
+# This is caused by Windows CRLF line endings
+# Fix it with:
+dos2unix airmonitor.sh
+chmod +x airmonitor.sh
+sudo ./airmonitor.sh
+
+# Or using sed if dos2unix is not available:
+sed -i 's/\r//' airmonitor.sh
+```
+
 #### Interface Not Detected
 ```bash
 # Check wireless interfaces
@@ -279,6 +310,16 @@ sudo airmonitor
 sudo -v
 ```
 
+#### Garuda Linux / Arch-based Issues
+```bash
+# If installer says "Unknown Linux":
+# This is fixed in the latest version - update your install.sh
+# Garuda Linux is now fully detected automatically
+
+# Install missing tools on Garuda/Arch:
+sudo pacman -S dos2unix ethtool iw wireless_tools
+```
+
 ---
 
 ## 🔧 Uninstallation
@@ -293,8 +334,9 @@ sudo ./uninstall.sh
 The uninstaller will:
 - Remove `/usr/local/bin/airmonitor`
 - Delete man page
-- Optionally remove user config files
-- Clean up backup files
+- Remove all backup files
+- Optionally remove user config files for all users
+- Verify complete removal
 
 ### Manual Removal
 
@@ -332,14 +374,14 @@ rm ~/.amigo_monitor_config
 
 ### Quick Toggle Mode
 ```
-╔══════════════════════════════════════════════╗
-║ Quick Mode Toggle                         ║
-╚══════════════════════════════════════════════╝
++----------------------------------------------+
+| Quick Mode Toggle                            |
++----------------------------------------------+
 [*] Current mode: MANAGED
 
-   Press [m] → Switch to Monitor Mode
-   Press [n] → Switch to Managed Mode
-   Press [q] → Quit
+   Press [m] - Switch to Monitor Mode
+   Press [n] - Switch to Managed Mode
+   Press [q] - Quit
 
    Your choice: m
 
@@ -355,7 +397,7 @@ Contributions are welcome! Here's how you can help:
 
 ### Reporting Issues
 
-Found a bug? [Open an issue](https://github.com/amigoDcyber/Airmonitor//issues) with:
+Found a bug? [Open an issue](https://github.com/amigoDcyber/Airmonitor/issues) with:
 - Your Linux distribution and version
 - Wireless adapter model
 - Complete error output
@@ -374,6 +416,9 @@ Found a bug? [Open an issue](https://github.com/amigoDcyber/Airmonitor//issues) 
 - Follow existing code style (bash best practices)
 - Add comments for complex logic
 - Test on multiple distributions
+- Always use `dos2unix` before committing `.sh` files edited on Windows
+- Use `local var` then `var=$(...)` pattern — never `local var=$(...)` (masks return values)
+- Initialize global state variables at the top of the script
 - Update documentation as needed
 
 ---
@@ -418,7 +463,7 @@ This tool is designed for:
 **amigo-d-cyber**
 
 - GitHub: [@amigo-d-cyber](https://github.com/amigoDcyber)
-- Repository: [ALL-free-LINUX-tools-](https://github.com/amigoDcyber/Airmonitor)
+- Repository: [Airmonitor](https://github.com/amigoDcyber/Airmonitor)
 
 ---
 
@@ -432,7 +477,7 @@ This tool is designed for:
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/amigoDcyber/Airmonitor//issues)
+- **Issues**: [GitHub Issues](https://github.com/amigoDcyber/Airmonitor/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/amigoDcyber/Airmonitor/discussions)
 - **Documentation**: `man airmonitor` (after installation)
 
@@ -442,7 +487,7 @@ This tool is designed for:
 
 **Stay bloody, stay sharp! 🩸⚡**
 
-Made with ❤️ by the amigo.Cyber
+Made with ❤️ by amigo.Cyber
 
 [![GitHub Stars](https://img.shields.io/github/stars/amigoDcyber/Airmonitor?style=social)](https://github.com/amigoDcyber/Airmonitor)
 [![GitHub Forks](https://img.shields.io/github/forks/amigoDcyber/Airmonitor?style=social)](https://github.com/amigoDcyber/Airmonitor)
